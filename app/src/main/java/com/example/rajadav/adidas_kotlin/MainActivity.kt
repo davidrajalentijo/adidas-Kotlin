@@ -2,6 +2,7 @@ package com.example.rajadav.adidas_kotlin
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
@@ -13,7 +14,7 @@ import com.example.rajadav.adidas_kotlin.model.Goal
 import com.example.rajadav.adidas_kotlin.model.Items
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), GoalAdapter.GoalAdapterOnClickHandler {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,9 +25,19 @@ class MainActivity : AppCompatActivity() {
 
         val factory  = ViewModelFactory(this)
         val model= ViewModelProviders.of(this, factory).get(MainViewModel::class.java)
-        model.getGoals().observe(this, Observer<List<Goal>>{data ->
-            lv.adapter = GoalAdapter(data!!)
+
+        model.getGoals().observe(this, Observer<List<Goal>>{
+            it?.let {data ->
+                lv.adapter = GoalAdapter(if (data != null) data else throw NullPointerException("Expression 'data' must not be null"), this)
+            }
+
+            //lv.adapter = GoalAdapter(if (data != null) data else throw NullPointerException("Expression 'data' must not be null"), this)
         })
+    }
+
+    override fun onGoalClick(goal: Goal){
+        Log.d("mainActivity", "clicking")
+        startActivity(Intent(this@MainActivity, DetailActivity::class.java).putExtra("title", goal.title))
     }
 
 }

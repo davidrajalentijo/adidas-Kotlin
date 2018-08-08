@@ -1,10 +1,18 @@
 package com.example.rajadav.adidas_kotlin.model
 
-import retrofit2.Call
-import retrofit2.http.GET
+import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.MutableLiveData
+import android.arch.persistence.room.Dao
+import android.arch.persistence.room.Insert
+import android.arch.persistence.room.OnConflictStrategy
+import android.arch.persistence.room.Query
 
-interface  GoalDao{
+@Dao
+interface GoalDao{
 
-    @GET("./")
-    fun getgoals(): Call<List<Goal>>
+    @Query("SELECT * FROM goal")
+    fun loadAllGoals() : LiveData<List<Goal>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertGoals(goal: List<Goal>)
 }

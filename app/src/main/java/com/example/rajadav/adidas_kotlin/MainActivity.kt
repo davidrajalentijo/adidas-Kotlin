@@ -11,7 +11,8 @@ import android.util.Log
 import android.widget.LinearLayout
 import com.example.rajadav.adidas_kotlin.R.id.recyclerview_main_data
 import com.example.rajadav.adidas_kotlin.model.Goal
-import com.example.rajadav.adidas_kotlin.model.Items
+import com.example.rajadav.adidas_kotlin.ui.goals.DetailActivity
+import com.example.rajadav.adidas_kotlin.ui.goals.GoalAdapter
 
 
 class MainActivity : AppCompatActivity(), GoalAdapter.GoalAdapterOnClickHandler {
@@ -37,7 +38,7 @@ class MainActivity : AppCompatActivity(), GoalAdapter.GoalAdapterOnClickHandler 
 
     override fun onGoalClick(goal: Goal){
         Log.d("mainActivity", "clicking")
-        startActivity(Intent(this@MainActivity, DetailActivity::class.java).putExtra("title", goal.title))
+        startActivity(Intent(this@MainActivity, DetailActivity::class.java).putExtra("title", goal.id))
     }
 
 }

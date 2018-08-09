@@ -1,9 +1,10 @@
-package com.example.rajadav.adidas_kotlin.model
+package com.example.rajadav.adidas_kotlin.database
 
 import android.arch.persistence.room.Database
 import android.arch.persistence.room.Room
 import android.arch.persistence.room.RoomDatabase
 import android.content.Context
+import com.example.rajadav.adidas_kotlin.model.Goal
 
 @Database(entities = [(Goal::class)], version = 2, exportSchema = false)
 abstract class AppDatabase(): RoomDatabase(){

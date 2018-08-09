@@ -3,9 +3,10 @@ package com.example.rajadav.adidas_kotlin
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import android.content.Context
-import com.example.rajadav.adidas_kotlin.model.AppDatabase
-import com.example.rajadav.adidas_kotlin.model.GoalDao
-import com.example.rajadav.adidas_kotlin.model.Webservice
+import com.example.rajadav.adidas_kotlin.data.GoalsRepo
+import com.example.rajadav.adidas_kotlin.database.AppDatabase
+import com.example.rajadav.adidas_kotlin.database.GoalDao
+import com.example.rajadav.adidas_kotlin.data.Webservice
 import com.google.gson.GsonBuilder
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -22,7 +23,7 @@ class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory
         return GoalsRepo(createWebService(), createGoalDao(context), createExecutor())
     }
 
-    fun createWebService(): Webservice{
+    fun createWebService(): Webservice {
         val gson = GsonBuilder().create()
         val retrofit = Retrofit.Builder()
                 .baseUrl(BASE_URL)
@@ -35,7 +36,7 @@ class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory
         return Executors.newSingleThreadExecutor()
     }
 
-    fun createGoalDao(context: Context): GoalDao{
+    fun createGoalDao(context: Context): GoalDao {
         val d: AppDatabase = AppDatabase.getInstance(context)
         return d.goalDao()
     }

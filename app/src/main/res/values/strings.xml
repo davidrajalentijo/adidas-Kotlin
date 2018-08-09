@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Adidas-Kotlin</string>
+    <string name="detail_steps_done">You have done %1$d steps</string>
+    <string name="detail_distance_done">You have done %1$d meters</string>
+    <string name="detail_points_earned">You have earned %1$d points</string>
 </resources>

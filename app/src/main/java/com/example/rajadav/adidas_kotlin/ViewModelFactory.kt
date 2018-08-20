@@ -3,17 +3,20 @@ package com.example.rajadav.adidas_kotlin
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import android.content.Context
+
 import com.example.rajadav.adidas_kotlin.data.GoalsRepo
 import com.example.rajadav.adidas_kotlin.database.AppDatabase
 import com.example.rajadav.adidas_kotlin.database.GoalDao
 import com.example.rajadav.adidas_kotlin.data.Webservice
+
 import com.google.gson.GsonBuilder
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
-class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory{
+/* Connect to retrofit and instanciate ViewModel */
+class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         return MainViewModel(createGoalRepo(context)) as T
@@ -32,7 +35,7 @@ class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory
         return retrofit.create(Webservice::class.java)
     }
 
-    fun createExecutor(): Executor{
+    fun createExecutor(): Executor {
         return Executors.newSingleThreadExecutor()
     }
 
@@ -42,7 +45,7 @@ class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory
     }
 
     companion object {
-        const val BASE_URL="https://thebigachallenge.appspot.com/_ah/api/myApi/v1/"
+        const val BASE_URL = "https://thebigachallenge.appspot.com/_ah/api/myApi/v1/"
     }
 
 }

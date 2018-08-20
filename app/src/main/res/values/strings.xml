@@ -3,4 +3,9 @@
     <string name="detail_steps_done">You have done %1$d steps</string>
     <string name="detail_distance_done">You have done %1$d meters</string>
     <string name="detail_points_earned">You have earned %1$d points</string>
+    <string name="final_date">%1$d/%2$d/%3$d</string>
+    <string name="total_points">Total points: %1$d</string>
+    <string name="today_points">Today points: %1$d</string>
+    <string name="tab_text_1">Goals</string>
+    <string name="tab_text_2">Profile</string>
 </resources>

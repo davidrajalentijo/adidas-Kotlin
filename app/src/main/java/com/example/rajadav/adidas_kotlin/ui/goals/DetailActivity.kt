@@ -12,11 +12,14 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+
 import com.example.rajadav.adidas_kotlin.MainViewModel
 import com.example.rajadav.adidas_kotlin.R
 import com.example.rajadav.adidas_kotlin.ViewModelFactory
+import com.example.rajadav.adidas_kotlin.model.CompletedGoal
 import com.example.rajadav.adidas_kotlin.model.Goal
 import com.example.rajadav.adidas_kotlin.model.Reward
+
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.FitnessOptions
@@ -30,7 +33,8 @@ import com.google.android.gms.tasks.Task
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class DetailActivity : AppCompatActivity(){
+/*This Activity show one goal with detail and connect with Google Fit to receive the corresponding data*/
+class DetailActivity : AppCompatActivity() {
 
     lateinit internal var titlegoal: TextView
     lateinit internal var descriptiongoal: TextView
@@ -38,9 +42,9 @@ class DetailActivity : AppCompatActivity(){
     private lateinit var model: MainViewModel
     private lateinit var progressBar: ProgressBar
     private lateinit var imageGoal: ImageView
-    private lateinit var messageCompleted : TextView
-    private lateinit var pointsEarned : TextView
-    private var mListener: OnDataPointListener ?= null
+    private lateinit var messageCompleted: TextView
+    private lateinit var pointsEarned: TextView
+    private var mListener: OnDataPointListener? = null
     var id: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,12 +57,12 @@ class DetailActivity : AppCompatActivity(){
         progressBar = findViewById<View>(R.id.goal_progressbar) as ProgressBar
         imageGoal = findViewById<View>(R.id.image_goal) as ImageView
         messageCompleted = findViewById<View>(R.id.tv_status) as TextView
-        pointsEarned = findViewById<View> (R.id.points_goal) as TextView
+        pointsEarned = findViewById<View>(R.id.points_goal) as TextView
 
-        id = intent.extras.getString("title").toInt()
+        id = intent.extras.getInt("id")
 
-        val factory  = ViewModelFactory(this)
-        model= ViewModelProviders.of(this, factory).get(MainViewModel::class.java)
+        val factory = ViewModelFactory(this)
+        model = ViewModelProviders.of(this, factory).get(MainViewModel::class.java)
 
         val fitnessOptions: FitnessOptions = FitnessOptions.builder()
                 .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
@@ -78,8 +82,8 @@ class DetailActivity : AppCompatActivity(){
         }
     }
 
-    fun getGoal(id: Int){
-        model.getGoal(id).observe(this, Observer<Goal>{
+    fun getGoal(id: Int) {
+        model.getGoal(id).observe(this, Observer<Goal> {
             titlegoal.text = it?.title
             descriptiongoal.text = it?.description
             progressBar.max = it?.goal!!
@@ -96,13 +100,13 @@ class DetailActivity : AppCompatActivity(){
         }
     }
 
-    private fun accessGoogleFit(goal:Goal) {
+    private fun accessGoogleFit(goal: Goal) {
         val cal: Calendar = Calendar.getInstance()
         val endTime: Long = cal.timeInMillis
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
         val startTime: Long = cal.timeInMillis
 
         val builder = DataReadRequest.Builder().setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS).bucketByTime(1, TimeUnit.DAYS)
@@ -118,16 +122,14 @@ class DetailActivity : AppCompatActivity(){
                         DataSourcesRequest.Builder().setDataTypes(DataType.TYPE_STEP_COUNT_DELTA, DataType.TYPE_DISTANCE_DELTA)
                                 .setDataSourceTypes(DataSource.TYPE_DERIVED).build()
                 ).addOnSuccessListener {
-                            for (dataSource: DataSource in it) {
-                                if (dataSource.dataType.equals(DataType.TYPE_STEP_COUNT_DELTA) && mListener == null && goal.type.equals("step")) {
-                                    Log.i("DetailActivity", "Data source for LOCATION_SAMPLE found!  Registering.")
-                                    registerFitnessDataListener(dataSource, DataType.TYPE_STEP_COUNT_DELTA, goal)
-                                }
-                                else if (dataSource.dataType.equals(DataType.TYPE_DISTANCE_DELTA) && mListener== null && (goal.type.equals("walking_distance") || goal.type.equals(("running_distance")))) {
-                                    registerFitnessDataListener(dataSource, DataType.TYPE_DISTANCE_DELTA, goal)
-                                }
-                            }
-                }.addOnFailureListener{
+                    for (dataSource: DataSource in it) {
+                        if (dataSource.dataType.equals(DataType.TYPE_STEP_COUNT_DELTA) && mListener == null && goal.type.equals("step")) {
+                            registerFitnessDataListener(dataSource, DataType.TYPE_STEP_COUNT_DELTA, goal)
+                        } else if (dataSource.dataType.equals(DataType.TYPE_DISTANCE_DELTA) && mListener == null && (goal.type.equals("walking_distance") || goal.type.equals(("running_distance")))) {
+                            registerFitnessDataListener(dataSource, DataType.TYPE_DISTANCE_DELTA, goal)
+                        }
+                    }
+                }.addOnFailureListener {
                     Log.e("DetailActivity", "failed", it);
                 }
 
@@ -139,36 +141,35 @@ class DetailActivity : AppCompatActivity(){
                             var dataSets: List<DataSet> = bucket.dataSets
                             for (dataSet: DataSet in dataSets) {
                                 if (dataSet.dataType.name.equals("com.google.step_count.delta")) {
-                                    showStepsDataSet(goal,goal.reward, dataSet)
+                                    showStepsDataSet(goal, goal.reward, dataSet)
                                 } else if (dataSet.dataType.name.equals("com.google.distance.delta")) {
-                                    showDistanceDataSet(goal,goal.reward, dataSet)
+                                    showDistanceDataSet(goal, goal.reward, dataSet)
                                 }
                             }
                         }
                     } else if (response.dataSets.size > 0) {
                         for (dataSet: DataSet in response.dataSets) {
                             if (dataSet.dataType.name.equals("com.google.step_count.delta")) {
-                                showStepsDataSet(goal,goal.reward, dataSet)
+                                showStepsDataSet(goal, goal.reward, dataSet)
                             } else if (dataSet.dataType.name.equals("com.google.distance.delta")) {
-                                showDistanceDataSet(goal,goal.reward, dataSet)
+                                showDistanceDataSet(goal, goal.reward, dataSet)
                             }
                         }
                     }
                 }.addOnFailureListener { e -> Log.e("err", e.toString()) }
     }
 
-    private fun registerFitnessDataListener(dataSource: DataSource, dataType: DataType, goal: Goal){
+    private fun registerFitnessDataListener(dataSource: DataSource, dataType: DataType, goal: Goal) {
 
         mListener =
-                OnDataPointListener{
-                    for (field:Field in it.dataType.fields) {
-                        var valor :Value = it.getValue(field)
-                        if (dataType.name.equals("com.google.step_count.delta")){
+                OnDataPointListener {
+                    for (field: Field in it.dataType.fields) {
+                        var valor: Value = it.getValue(field)
+                        if (dataType.name.equals("com.google.step_count.delta")) {
                             livesteps(valor.asInt(), goal)
-                        }
-                        else if (dataType.name.equals("com.google.distance.delta")){
+                        } else if (dataType.name.equals("com.google.distance.delta")) {
                             var a: Float = valor.asFloat()
-                            var b:Int = Math.round(a)
+                            var b: Int = Math.round(a)
                             livedistance(b, goal)
                         }
                     }
@@ -184,11 +185,11 @@ class DetailActivity : AppCompatActivity(){
                         mListener)
                 .addOnCompleteListener(
                         OnCompleteListener {
-                                if (it.isSuccessful()) {
-                                    Log.i("DetailActivity", "Listener registered!")
-                                } else {
-                                    Log.e("DetailActivity", "Listener not registered.", it.getException())
-                                }
+                            if (it.isSuccessful()) {
+                                Log.i("DetailActivity", "Listener registered!")
+                            } else {
+                                Log.e("DetailActivity", "Listener not registered.", it.getException())
+                            }
                         })
     }
 
@@ -207,7 +208,7 @@ class DetailActivity : AppCompatActivity(){
                 .remove(mListener)
                 .addOnCompleteListener(
                         OnCompleteListener {
-                            fun onComplete(@NonNull task: Task<Boolean>){
+                            fun onComplete(@NonNull task: Task<Boolean>) {
                                 if (task.isSuccessful() && task.getResult()) {
                                     Log.i("DetailActivity", "Listener was removed!");
                                 } else {
@@ -224,9 +225,10 @@ class DetailActivity : AppCompatActivity(){
         unregisterFitnessDataListener()
     }
 
-    fun showStepsDataSet(goal: Goal, reward: Reward, dataSet: DataSet){
+    /* function that receive the steps of Google Fit*/
+    fun showStepsDataSet(goal: Goal, reward: Reward, dataSet: DataSet) {
 
-        if (dataSet.dataPoints.size == 0){
+        if (dataSet.dataPoints.size == 0) {
             progressBar.progress = 0
             numbersteps.text = resources.getString(R.string.detail_steps_done, 0)
         }
@@ -238,26 +240,28 @@ class DetailActivity : AppCompatActivity(){
         }
     }
 
-    fun showDistanceDataSet(goal: Goal,reward: Reward, dataSet: DataSet){
+    /* function that receive the distance of Google Fit*/
+    fun showDistanceDataSet(goal: Goal, reward: Reward, dataSet: DataSet) {
 
-        if (dataSet.dataPoints.size == 0){
-            progressBar.progress=0
+        if (dataSet.dataPoints.size == 0) {
+            progressBar.progress = 0
             numbersteps.text = resources.getString(R.string.detail_distance_done, 0)
         }
 
         for (dp: DataPoint in dataSet.dataPoints) {
             var a: Float = dp.getValue(Field.FIELD_DISTANCE).asFloat()
             var b: Int = Math.round(a)
-            numbersteps.text= resources.getString(R.string.detail_distance_done, b)
+            numbersteps.text = resources.getString(R.string.detail_distance_done, b)
             progressBar.progress = b
-            checkGoalCompleted(goal,reward, b)
+            checkGoalCompleted(goal, reward, b)
         }
     }
 
-    fun checkGoalCompleted (goal: Goal,reward: Reward, value: Int){
+    /* function that check if one goal is completed */
+    fun checkGoalCompleted(goal: Goal, reward: Reward, value: Int) {
 
-        if (value >= goal.goal){
-            when(reward.trophy){
+        if (value >= goal.goal) {
+            when (reward.trophy) {
                 Goal.BRONZE_REWARD -> imageGoal.setImageResource(R.drawable.bronzemedal)
                 Goal.GOLD_REWARD -> imageGoal.setImageResource(R.drawable.goldmedal)
                 Goal.SILVER_REWARD -> imageGoal.setImageResource(R.drawable.silvermedal)
@@ -267,18 +271,26 @@ class DetailActivity : AppCompatActivity(){
             imageGoal.visibility = View.VISIBLE
             pointsEarned.visibility = View.VISIBLE
             pointsEarned.text = resources.getString(R.string.detail_points_earned, reward.points)
+
+            val cal: Calendar = Calendar.getInstance()
+            val date = Date()
+
+            val newCompleted = CompletedGoal(goal.id, goal.title, reward.points, reward.trophy, cal.get(Calendar.DAY_OF_MONTH), (cal.get(Calendar.MONTH) + 1), cal.get(Calendar.YEAR), date.hours, date.minutes, date.seconds)
+            model.insertGoalDone(newCompleted)
         }
     }
 
-    fun livesteps(value: Int, goal: Goal){
+    /* function that update the steps of Google Fit*/
+    fun livesteps(value: Int, goal: Goal) {
         var finalsteps: Int = value + goal.steps
         goal.steps = finalsteps
         model.updateGoal(goal)
         numbersteps.text = resources.getString(R.string.detail_steps_done, finalsteps)
     }
 
-    fun livedistance(value: Int, goal: Goal){
-        var finaldistance:Int  = goal.distance + value
+    /* function that update the distance of Google Fit*/
+    fun livedistance(value: Int, goal: Goal) {
+        var finaldistance: Int = goal.distance + value
         goal.distance = finaldistance
         model.updateGoal(goal);
         numbersteps.text = resources.getString(R.string.detail_steps_done, value)

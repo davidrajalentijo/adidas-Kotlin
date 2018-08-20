@@ -37,22 +37,12 @@ class ProfileFragment: Fragment(), ProfileAdapter.ProfileAdapterOnClickHandler{
         })
 
         model.getTotalPoints().observe(this, Observer {
-            if (it==null){
-                rootView.tv_total_points.text = rootView.resources.getString(R.string.total_points, 0)
-            }
-            else {
-                rootView.tv_total_points.text = rootView.resources.getString(R.string.total_points, it)
-            }
+            rootView.tv_total_points.text = rootView.resources.getString(R.string.total_points, it?: 0)
         })
+
         val cal: Calendar = Calendar.getInstance()
         model.getTodayPoints(cal.get(Calendar.DAY_OF_MONTH),(cal.get(Calendar.MONTH) +1),cal.get(Calendar.YEAR)).observe(this, Observer {
-            if (it==null){
-                rootView.tv_day_points.text = rootView.resources.getString(R.string.today_points, 0)
-
-            }
-            else {
-                rootView.tv_day_points.text = rootView.resources.getString(R.string.today_points, it)
-            }
+            rootView.tv_day_points.text = rootView.resources.getString(R.string.today_points, it?: 0)
         })
 
         return rootView

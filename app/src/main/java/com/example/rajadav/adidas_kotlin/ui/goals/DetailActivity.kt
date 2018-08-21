@@ -9,9 +9,6 @@ import android.support.annotation.NonNull
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
-import android.widget.ImageView
-import android.widget.ProgressBar
-import android.widget.TextView
 
 import com.example.rajadav.adidas_kotlin.MainViewModel
 import com.example.rajadav.adidas_kotlin.R
@@ -30,34 +27,21 @@ import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.request.SensorRequest
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
+import kotlinx.android.synthetic.main.activity_detail.*
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlinx.android.synthetic.main.activity_detail.view.*
 
 /*This Activity show one goal with detail and connect with Google Fit to receive the corresponding data*/
 class DetailActivity : AppCompatActivity() {
 
-    lateinit internal var titlegoal: TextView
-    lateinit internal var descriptiongoal: TextView
-    lateinit internal var numbersteps: TextView
     private lateinit var model: MainViewModel
-    private lateinit var progressBar: ProgressBar
-    private lateinit var imageGoal: ImageView
-    private lateinit var messageCompleted: TextView
-    private lateinit var pointsEarned: TextView
     private var mListener: OnDataPointListener? = null
     var id: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detail)
-
-        titlegoal = findViewById<View>(R.id.tv_title_goal) as TextView
-        numbersteps = findViewById<View>(R.id.tv_number_steps) as TextView
-        descriptiongoal = findViewById<View>(R.id.tv_description_goal) as TextView
-        progressBar = findViewById<View>(R.id.goal_progressbar) as ProgressBar
-        imageGoal = findViewById<View>(R.id.image_goal) as ImageView
-        messageCompleted = findViewById<View>(R.id.tv_status) as TextView
-        pointsEarned = findViewById<View>(R.id.points_goal) as TextView
 
         id = intent.extras.getInt("id")
 
@@ -84,10 +68,10 @@ class DetailActivity : AppCompatActivity() {
 
     fun getGoal(id: Int) {
         model.getGoal(id).observe(this, Observer<Goal> {
-            titlegoal.text = it?.title
-            descriptiongoal.text = it?.description
-            progressBar.max = it?.goal!!
-            accessGoogleFit(it!!)
+            tv_title_goal.text = it?.title
+            tv_description_goal.text = it?.description
+            goal_progressbar.max = it?.goal!!
+            accessGoogleFit(it)
         })
     }
 
@@ -229,13 +213,13 @@ class DetailActivity : AppCompatActivity() {
     fun showStepsDataSet(goal: Goal, reward: Reward, dataSet: DataSet) {
 
         if (dataSet.dataPoints.size == 0) {
-            progressBar.progress = 0
-            numbersteps.text = resources.getString(R.string.detail_steps_done, 0)
+            goal_progressbar.progress = 0
+            tv_number_steps_or_distance.text = resources.getString(R.string.detail_steps_done, 0)
         }
 
         for (dp: DataPoint in dataSet.dataPoints) {
-            numbersteps.text = resources.getString(R.string.detail_steps_done, dp.getValue(Field.FIELD_STEPS).asInt())
-            progressBar.progress = dp.getValue(Field.FIELD_STEPS).asInt()
+            tv_number_steps_or_distance.text = resources.getString(R.string.detail_steps_done, dp.getValue(Field.FIELD_STEPS).asInt())
+            goal_progressbar.progress = dp.getValue(Field.FIELD_STEPS).asInt()
             checkGoalCompleted(goal, reward, dp.getValue(Field.FIELD_STEPS).asInt())
         }
     }
@@ -244,15 +228,15 @@ class DetailActivity : AppCompatActivity() {
     fun showDistanceDataSet(goal: Goal, reward: Reward, dataSet: DataSet) {
 
         if (dataSet.dataPoints.size == 0) {
-            progressBar.progress = 0
-            numbersteps.text = resources.getString(R.string.detail_distance_done, 0)
+            goal_progressbar.progress = 0
+            tv_number_steps_or_distance.text = resources.getString(R.string.detail_distance_done, 0)
         }
 
         for (dp: DataPoint in dataSet.dataPoints) {
             var a: Float = dp.getValue(Field.FIELD_DISTANCE).asFloat()
             var b: Int = Math.round(a)
-            numbersteps.text = resources.getString(R.string.detail_distance_done, b)
-            progressBar.progress = b
+            tv_number_steps_or_distance.text = resources.getString(R.string.detail_distance_done, b)
+            goal_progressbar.progress = b
             checkGoalCompleted(goal, reward, b)
         }
     }
@@ -262,19 +246,18 @@ class DetailActivity : AppCompatActivity() {
 
         if (value >= goal.goal) {
             when (reward.trophy) {
-                Goal.BRONZE_REWARD -> imageGoal.setImageResource(R.drawable.bronzemedal)
-                Goal.GOLD_REWARD -> imageGoal.setImageResource(R.drawable.goldmedal)
-                Goal.SILVER_REWARD -> imageGoal.setImageResource(R.drawable.silvermedal)
-                Goal.ZOMBIE_REWARD -> imageGoal.setImageResource(R.drawable.if__zombie_rising_1573300)
+                Goal.BRONZE_REWARD -> image_goal.setImageResource(R.drawable.bronzemedal)
+                Goal.GOLD_REWARD -> image_goal.setImageResource(R.drawable.goldmedal)
+                Goal.SILVER_REWARD -> image_goal.setImageResource(R.drawable.silvermedal)
+                Goal.ZOMBIE_REWARD -> image_goal.setImageResource(R.drawable.if__zombie_rising_1573300)
             }
-            messageCompleted.visibility = View.VISIBLE
-            imageGoal.visibility = View.VISIBLE
-            pointsEarned.visibility = View.VISIBLE
-            pointsEarned.text = resources.getString(R.string.detail_points_earned, reward.points)
+            tv_status.visibility = View.VISIBLE
+            image_goal.visibility = View.VISIBLE
+            points_goal.visibility = View.VISIBLE
+            points_goal.text = resources.getString(R.string.detail_points_earned, reward.points)
 
             val cal: Calendar = Calendar.getInstance()
             val date = Date()
-
             val newCompleted = CompletedGoal(goal.id, goal.title, reward.points, reward.trophy, cal.get(Calendar.DAY_OF_MONTH), (cal.get(Calendar.MONTH) + 1), cal.get(Calendar.YEAR), date.hours, date.minutes, date.seconds)
             model.insertGoalDone(newCompleted)
         }
@@ -285,7 +268,7 @@ class DetailActivity : AppCompatActivity() {
         var finalsteps: Int = value + goal.steps
         goal.steps = finalsteps
         model.updateGoal(goal)
-        numbersteps.text = resources.getString(R.string.detail_steps_done, finalsteps)
+        tv_number_steps_or_distance.text = resources.getString(R.string.detail_steps_done, finalsteps)
     }
 
     /* function that update the distance of Google Fit*/
@@ -293,7 +276,7 @@ class DetailActivity : AppCompatActivity() {
         var finaldistance: Int = goal.distance + value
         goal.distance = finaldistance
         model.updateGoal(goal);
-        numbersteps.text = resources.getString(R.string.detail_steps_done, value)
+        tv_number_steps_or_distance.text = resources.getString(R.string.detail_distance_done, value)
     }
 
     companion object {
